@@ -8,20 +8,29 @@ struct DisplayBuffer<const N: usize, const M: usize>(pub [[u8; M]; N]);
 fn main() {
 	let mut display_buf = DisplayBuffer([[0; BUF_WIDTH]; BUF_HEIGHT]);
 
-	let triangle = [
-		Vec2::new(1.0, 1.0),
-		Vec2::new(22.0, 4.0),
-		Vec2::new(4.0, 22.0),
+	let mesh = [
+		[
+			Vec2::new(1.0, 1.0),
+			Vec2::new(22.0, 4.0),
+			Vec2::new(4.0, 22.0),
+		],
+		[
+			Vec2::new(22.0, 4.0),
+			Vec2::new(4.0, 22.0),
+			Vec2::new(22.0, 20.0),
+		],
 	];
 
-	for pixel in get_triangle_pixels(&triangle) {
-		if !(0..BUF_HEIGHT).contains(&(pixel.y as usize)) {
-			return;
+	for triangle in mesh {
+		for pixel in get_triangle_pixels(&triangle) {
+			if !(0..BUF_HEIGHT).contains(&(pixel.y as usize)) {
+				return;
+			}
+			if !(0..BUF_WIDTH).contains(&(pixel.x as usize)) {
+				return;
+			}
+			display_buf.0[pixel.y as usize][pixel.x as usize] = u8::MAX;
 		}
-		if !(0..BUF_WIDTH).contains(&(pixel.x as usize)) {
-			return;
-		}
-		display_buf.0[pixel.y as usize][pixel.x as usize] = u8::MAX;
 	}
 
 	let mut print_buf = String::new();
