@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
-use glam::{IVec2, Vec2, Vec2Swizzles};
+use glam::{IVec2, Vec2Swizzles};
+
+use crate::mesh::Triangle;
 
 pub struct DisplayBuffer<const N: usize, const M: usize>(pub [[u8; M]; N]);
 
 impl<const N: usize, const M: usize> DisplayBuffer<N, M> {
-	pub fn draw_mesh(&mut self, mesh: &[[Vec2; 3]]) {
+	pub fn draw_mesh(&mut self, mesh: &[Triangle]) {
 		for triangle in mesh {
-			for pixel in get_triangle_pixels(&triangle) {
+			for pixel in get_triangle_pixels(triangle) {
 				if !(0..N).contains(&(pixel.y as usize)) {
 					return;
 				}
@@ -78,16 +80,13 @@ fn get_bresenhams_line(p0: IVec2, p1: IVec2) -> Vec<IVec2> {
 	}
 }
 
-fn get_triangle_pixels(triangle: &[Vec2; 3]) -> Vec<IVec2> {
-	let edges = [
-		(triangle[0], triangle[1]),
-		(triangle[0], triangle[2]),
-		(triangle[1], triangle[2]),
-	];
+fn get_triangle_pixels(triangle: &Triangle) -> Vec<IVec2> {
 	let mut pixel_edges_map = HashMap::<_, Vec<_>>::new();
 
-	edges
-		.into_iter()
+	triangle
+		.get_edges()
+		.iter()
+		.map(|(v0, v1)| (v0.truncate(), v1.truncate()))
 		.map(|(v0, v1)| (v0.round().as_ivec2(), v1.round().as_ivec2()))
 		.flat_map(|(v0, v1)| get_bresenhams_line(v0, v1))
 		.for_each(|ivec| pixel_edges_map.entry(ivec.y).or_default().push(ivec.x));
