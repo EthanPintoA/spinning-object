@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use glam::{IVec2, Vec2, Vec2Swizzles};
 
 const BUF_WIDTH: usize = 26;
@@ -16,8 +18,8 @@ fn main() {
 		],
 		[
 			Vec2::new(22.0, 4.0),
-			Vec2::new(4.0, 22.0),
-			Vec2::new(22.0, 20.0),
+			Vec2::new(10.0, 22.0),
+			Vec2::new(24.0, 20.0),
 		],
 	];
 
@@ -110,10 +112,20 @@ fn get_triangle_pixels(triangle: &[Vec2; 3]) -> Vec<IVec2> {
 		(triangle[0], triangle[2]),
 		(triangle[1], triangle[2]),
 	];
+	let mut pixel_edges_map = HashMap::<_, Vec<_>>::new();
 
 	edges
 		.into_iter()
 		.map(|(v0, v1)| (v0.round().as_ivec2(), v1.round().as_ivec2()))
 		.flat_map(|(v0, v1)| get_bresenhams_line(v0, v1))
+		.for_each(|ivec| pixel_edges_map.entry(ivec.y).or_default().push(ivec.x));
+
+	pixel_edges_map
+		.iter()
+		.flat_map(|(y, x_vec)| {
+			let min = *x_vec.iter().min().unwrap();
+			let max = *x_vec.iter().max().unwrap();
+			(min..=max).map(|x| IVec2::new(x, *y))
+		})
 		.collect()
 }
