@@ -11,10 +11,10 @@ impl<const N: usize, const M: usize> DisplayBuffer<N, M> {
 		for triangle in mesh {
 			for pixel in get_triangle_pixels(triangle) {
 				if !(0..N).contains(&(pixel.y as usize)) {
-					return;
+					continue;
 				}
 				if !(0..M).contains(&(pixel.x as usize)) {
-					return;
+					continue;
 				}
 				self.0[pixel.y as usize][pixel.x as usize] = u8::MAX;
 			}
