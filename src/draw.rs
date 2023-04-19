@@ -1,14 +1,22 @@
 use std::collections::HashMap;
+use std::f32::consts::PI;
 
-use glam::{IVec2, Vec2Swizzles};
+use glam::{IVec2, Vec2Swizzles, Vec3};
 
 use crate::mesh::Triangle;
 
 pub struct DisplayBuffer<const N: usize, const M: usize>(pub [[u8; M]; N]);
 
 impl<const N: usize, const M: usize> DisplayBuffer<N, M> {
-	pub fn draw_mesh(&mut self, mesh: &[Triangle]) {
+	pub fn draw_mesh(&mut self, mesh: &[Triangle], light_direction: Vec3) {
+		let mut z_buf = [[f32::MAX; M]; N];
+
 		for triangle in mesh {
+			// Using `avg` as the pixels' z-value because it's easier than calculating the
+			// z-value for every pixel.
+			let avg_z = triangle.get_center().z;
+			let brightness = get_brightness(triangle.get_normal(), light_direction);
+
 			for pixel in get_triangle_pixels(triangle) {
 				if !(0..N).contains(&(pixel.y as usize)) {
 					continue;
@@ -16,10 +24,30 @@ impl<const N: usize, const M: usize> DisplayBuffer<N, M> {
 				if !(0..M).contains(&(pixel.x as usize)) {
 					continue;
 				}
-				self.0[pixel.y as usize][pixel.x as usize] = u8::MAX;
+				if z_buf[pixel.y as usize][pixel.x as usize] < avg_z {
+					continue;
+				}
+				z_buf[pixel.y as usize][pixel.x as usize] = avg_z;
+				self.0[pixel.y as usize][pixel.x as usize] = brightness;
 			}
 		}
 	}
+}
+
+/// Get how bright the surface is given a directional light.
+fn get_brightness(surface_normal: Vec3, light_direction: Vec3) -> u8 {
+	const HALF_PI: f32 = PI / 2.0;
+
+	let angle_diff = surface_normal.angle_between(light_direction);
+	// Force triangle to always face camera (due to no back-face culling)
+	let angle_diff = if angle_diff < HALF_PI {
+		PI - angle_diff
+	} else {
+		angle_diff
+	};
+
+	// Converts (HALF_PI <= angle_diff <= PI) to (0 <= brightness<= 255)
+	(255.0 * (angle_diff - HALF_PI) / HALF_PI).round() as u8
 }
 
 /// Returns vector positions dependent positions

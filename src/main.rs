@@ -5,12 +5,14 @@ mod mesh;
 use std::f32::consts::PI;
 
 use draw::DisplayBuffer;
-use glam::{EulerRot, Quat};
+use glam::{EulerRot, Quat, Vec3};
 
 use crate::mesh::{get_cube_mesh, rotate_mesh};
 
 const BUF_WIDTH: usize = 26;
 const BUF_HEIGHT: usize = 26;
+
+const LIGHT_DIRECTION: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
 fn main() {
 	let mut display_buf = DisplayBuffer([[0; BUF_WIDTH]; BUF_HEIGHT]);
@@ -21,6 +23,6 @@ fn main() {
 
 	rotate_mesh(&mut mesh, quat, mesh_center);
 
-	display_buf.draw_mesh(&mesh);
+	display_buf.draw_mesh(&mesh, LIGHT_DIRECTION);
 	println!("{}", display_buf);
 }

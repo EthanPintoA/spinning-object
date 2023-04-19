@@ -25,6 +25,16 @@ impl Triangle {
 			*v = (quat * (*v - pos)) + pos;
 		}
 	}
+
+	pub fn get_normal(&self) -> Vec3 {
+		let v0 = self.vertices[1] - self.vertices[0];
+		let v1 = self.vertices[2] - self.vertices[1];
+		(v0).cross(v1).normalize_or_zero()
+	}
+
+	pub fn get_center(&self) -> Vec3 {
+		(self.vertices[0] + self.vertices[1] + self.vertices[2]) / 3.0
+	}
 }
 
 /// Rotate about `pos`.
