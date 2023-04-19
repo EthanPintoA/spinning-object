@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::{Quat, Vec3};
 
 pub struct Triangle {
 	vertices: [Vec3; 3],
@@ -17,6 +17,20 @@ impl Triangle {
 			(&self.vertices[0], &self.vertices[2]),
 			(&self.vertices[1], &self.vertices[2]),
 		]
+	}
+
+	/// Rotate about `pos`.
+	pub fn rotate(&mut self, quat: Quat, pos: Vec3) {
+		for v in self.vertices.iter_mut() {
+			*v = (quat * (*v - pos)) + pos;
+		}
+	}
+}
+
+/// Rotate about `pos`.
+pub fn rotate_mesh(mesh: &mut [Triangle], quat: Quat, pos: Vec3) {
+	for triangle in mesh {
+		triangle.rotate(quat, pos);
 	}
 }
 
